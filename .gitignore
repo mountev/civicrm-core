@@ -39,7 +39,6 @@ tools/tests/reports/logfile.tap
 tools/tests/reports/testdox.html
 tools/tests/reports/testdox.txt
 l10n
-vendor
 civicrm.settings.php
 sql/dummy_processor.mysql
 distmaker/distmaker.conf
