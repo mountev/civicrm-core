@@ -93,8 +93,10 @@ class CRM_Utils_PDF_Document {
       ->setCreator(CRM_Core_DAO::getFieldValue('CRM_Contact_BAO_Contact', CRM_Core_Session::getLoggedInContactID(), 'display_name'));
 
     foreach ((array) $pages as $page => $html) {
+      // convert html line breaks to new line
+      $html = str_replace("<br />", "\n", $html);
       $section = $phpWord->addSection($pageStyle + array('breakType' => 'nextPage'));
-      \PhpOffice\PhpWord\Shared\Html::addHtml($section, $html);
+      \PhpOffice\PhpWord\Shared\Html::addHtml($section, $html, false, false);
     }
 
     self::printDoc($phpWord, $ext, $fileName);
