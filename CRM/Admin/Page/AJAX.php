@@ -252,11 +252,8 @@ class CRM_Admin_Page_AJAX {
     $mapping = CRM_Core_BAO_ActionSchedule::getMapping($_GET['mappingID']);
     $dateFieldLabels = $mapping ? $mapping->getDateFields() : array();
 
-    // The UX here is quirky -- for "Activity" types, there's a simple drop "Recipients"
-    // dropdown which is always displayed. For other types, the "Recipients" drop down is
-    // conditional upon the weird isLimit ('Limit To / Also Include / Neither') dropdown.
-    $noThanksJustKidding = !$_GET['isLimit'];
-    if ($mapping instanceof CRM_Activity_ActionMapping || !$noThanksJustKidding) {
+    // The "Recipients" drop down is conditional upon the weird isLimit ('Limit To / Also Include / Neither') dropdown.
+    if (!empty($_GET['isLimit'])) {
       $entityRecipientLabels = $mapping ? ($mapping->getRecipientTypes() + CRM_Core_BAO_ActionSchedule::getAdditionalRecipients()) : array();
     }
     else {

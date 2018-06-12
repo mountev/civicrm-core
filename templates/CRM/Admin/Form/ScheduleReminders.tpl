@@ -213,8 +213,8 @@
 
       // CRM-14070 Hide limit-to when entity is activity
       function showHideLimitTo() {
-        $('#limit_to', $form).toggle(!($('#entity_0', $form).val() == '1'));
-        if ($('#entity_0', $form).val() != '1' || !($('#entity_0').length)) {
+        $('#limit_to', $form).toggle();
+        if (!($('#entity_0').length)) {
           if ($('#limit_to', $form).val() == '') {
             $('tr.recipient:visible, #recipientList, #recipient, a.recipient').hide();
             $('a.limit_to').show();
@@ -224,12 +224,6 @@
             $('#recipient').css("margin-left", "12px");
           }
           $("label[for='recipient']").text('{/literal}{$recipientLabels.other}{literal}');
-        }
-        else {
-          $('#recipient, a.recipient').show()
-          $('#recipient').css("margin-left", "-2px");
-          $('a.limit_to').hide();
-          $("label[for='recipient']").text('{/literal}{$recipientLabels.activity}{literal}');
         }
       }
 
