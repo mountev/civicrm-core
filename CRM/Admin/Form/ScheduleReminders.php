@@ -550,10 +550,6 @@ class CRM_Admin_Form_ScheduleReminders extends CRM_Admin_Form {
     }
     else {
       $params['mapping_id'] = $values['entity'][0];
-      if ($params['mapping_id'] == 1) {
-        $params['limit_to'] = 1;
-      }
-
       $entity_value = CRM_Utils_Array::value(1, $values['entity'], array());
       $entity_status = CRM_Utils_Array::value(2, $values['entity'], array());
       $params['entity_value'] = implode(CRM_Core_DAO::VALUE_SEPARATOR, $entity_value);
