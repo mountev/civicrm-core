@@ -37,7 +37,9 @@ require_once 'Mail.php';
  * Class CRM_Mailing_BAO_MailingJob
  */
 class CRM_Mailing_BAO_MailingJob extends CRM_Mailing_DAO_MailingJob {
-  const MAX_CONTACTS_TO_PROCESS = 1000;
+  const MAX_CONTACTS_TO_PROCESS = 2000;
+  //const SEND_VIA_MAILER_BATCH = FALSE;
+  const SEND_VIA_MAILER_BATCH = TRUE;
 
   /**
    * (Dear God Why) Keep a global count of mails processed within the current
@@ -621,7 +623,19 @@ VALUES (%1, %2, %3, %4, %5, %6, %7)
     );
 
     $config = CRM_Core_Config::singleton();
+    CRM_Core_Error::debug_var('Individual mailing time tracker start', 1);
     foreach ($fields as $key => $field) {
+      if (self::SEND_VIA_MAILER_BATCH) {
+        $eq = new CRM_Mailing_Event_BAO_Queue();
+        $eq->id = $field['id'];
+        $eq->find(true);
+        if (!empty($eq->recipient)) {
+          CRM_Core_Error::debug_var('$mailer', $mailer);
+          // queue is already populated
+          continue;
+        }
+      }
+
       $contactID = $field['contact_id'];
       if (!array_key_exists($contactID, $details[0])) {
         $details[0][$contactID] = array();
@@ -667,6 +681,18 @@ VALUES (%1, %2, %3, %4, %5, %6, %7)
         $errorScope = CRM_Core_TemporaryErrorScope::ignoreException();
       }
 
+      CRM_Core_Error::debug_var('$recipient', $recipient);
+      CRM_Core_Error::debug_var('$headers', $headers);
+      CRM_Core_Error::debug_var('$body', $body);
+      if (self::SEND_VIA_MAILER_BATCH) {
+        $eq->recipient = $recipient;
+        //set to with sparkpost token, otherwise email gets sent to whats set in headers multiple times
+        $headers['To'] = '{{address.name}} <{{address.email}}>';
+        $eq->headers = serialize($headers);
+        $eq->body = $body;
+        $eq->save();
+        continue;
+      }
       $result = $mailer->send($recipient, $headers, $body, $this->id);
 
       if ($job_date) {
@@ -767,6 +793,37 @@ VALUES (%1, %2, %3, %4, %5, %6, %7)
       if (!empty($mailThrottleTime)) {
         usleep((int ) $mailThrottleTime);
       }
+    }
+    CRM_Core_Error::debug_var('Individual mailing time tracker end', 1);
+    if (self::SEND_VIA_MAILER_BATCH) {
+      CRM_Core_Error::debug_var('Batch mailing time tracker start', 1);
+      $allRecipients = array();
+      $eqHeaders = array();
+      foreach ($fields as $key => $field) {
+        $eq = new CRM_Mailing_Event_BAO_Queue();
+        $eq->id = $field['id'];
+        $eq->find(true);
+        if (!empty($eq->recipient) && $eq->contact_id != 220) {
+          $allRecipients[] = $eq->recipient;
+          $eqHeaders = unserialize($eq->headers); 
+          $eqBody = $eq->body; 
+
+          $deliveredParams[] = $field['id'];
+          $targetParams[]    = $field['contact_id'];
+        }
+      }
+      if (!empty($allRecipients)) {
+        CRM_Core_Error::debug_var('Batch mailing send', 1);
+        CRM_Core_Error::debug_var('$allRecipients', $allRecipients);
+        $result = $mailer->send($allRecipients, $eqHeaders, $eqBody, $this->id);
+        if (is_a($result, 'PEAR_Error') && !$mailing->sms_provider_id) {
+          CRM_Core_Error::debug_var('$result of batch delivery failure', $result);
+          // todo: Register the bounce event.
+          // reset delivered params
+          $deliveredParams = $targetParams = array();
+        }
+      }
+      CRM_Core_Error::debug_var('Batch mailing time tracker end', 1);
     }
 
     $result = $this->writeToDB(

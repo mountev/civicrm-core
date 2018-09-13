@@ -69,6 +69,13 @@ class CRM_Mailing_Event_DAO_Queue extends CRM_Core_DAO {
   public $phone_id;
 
   /**
+   * Body of the mailing in html format.
+   *
+   * @var longtext
+   */
+  public $body;
+
+  /**
    * Class constructor.
    */
   public function __construct() {
@@ -172,6 +179,40 @@ class CRM_Mailing_Event_DAO_Queue extends CRM_Core_DAO {
           'bao' => 'CRM_Mailing_Event_BAO_Queue',
           'localizable' => 0,
           'FKClassName' => 'CRM_Core_DAO_Phone',
+        ],
+        'recipient' => [
+          'name' => 'recipient',
+          'type' => CRM_Utils_Type::T_STRING,
+          'title' => ts('Recipient'),
+          'description' => 'Recipient of composed email.',
+          'maxlength' => 512,
+          'default' => 'NULL',
+          'table_name' => 'civicrm_mailing_event_queue',
+          'entity' => 'Queue',
+          'bao' => 'CRM_Mailing_Event_BAO_Queue',
+          'localizable' => 0,
+        ],
+        'headers' => [
+          'name' => 'headers',
+          'type' => CRM_Utils_Type::T_TEXT,
+          'title' => ts('Headers'),
+          'description' => 'headers of composed email.',
+          'default' => 'NULL',
+          'table_name' => 'civicrm_mailing_event_queue',
+          'entity' => 'Queue',
+          'bao' => 'CRM_Mailing_Event_BAO_Queue',
+          'localizable' => 0,
+        ],
+        'body' => [
+          'name' => 'body',
+          'type' => CRM_Utils_Type::T_LONGTEXT,
+          'title' => ts('Body'),
+          'description' => 'Body of the mailing in html format.',
+          'default' => 'NULL',
+          'table_name' => 'civicrm_mailing_event_queue',
+          'entity' => 'Queue',
+          'bao' => 'CRM_Mailing_Event_BAO_Queue',
+          'localizable' => 0,
         ],
       ];
       CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
