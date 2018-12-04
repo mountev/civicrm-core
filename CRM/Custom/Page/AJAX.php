@@ -116,11 +116,19 @@ class CRM_Custom_Page_AJAX {
     $params = CRM_Core_Page_AJAX::defaultSortAndPagerParams(0, 10);
     $params['cid'] = CRM_Utils_Type::escape($_GET['cid'], 'Integer');
     $params['cgid'] = CRM_Utils_Type::escape($_GET['cgid'], 'Integer');
+    if (!empty($_GET['profile_id'])) {
+      $params['profileId'] = CRM_Utils_Type::escape($_GET['profile_id'], 'Integer');
+    }
 
     $contactType = CRM_Contact_BAO_Contact::getContactType($params['cid']);
 
     $obj = new CRM_Profile_Page_MultipleRecordFieldsListing();
     $obj->_pageViewType = 'customDataView';
+    if (!empty($params['profileId'])) {
+      // use the datatable but keep the action urls use profile instead of contact
+      $obj->_profileId     = $params['profileId'];
+      $obj->_actionUrlType = 'profileDataView';
+    }
     $obj->_contactId = $params['cid'];
     $obj->_customGroupId = $params['cgid'];
     $obj->_contactType = $contactType;

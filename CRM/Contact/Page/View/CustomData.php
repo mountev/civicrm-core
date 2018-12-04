@@ -68,6 +68,9 @@ class CRM_Contact_Page_View_CustomData extends CRM_Core_Page {
     $this->_groupId = CRM_Utils_Request::retrieve('gid', 'Positive', $this, TRUE);
     $this->assign('groupId', $this->_groupId);
 
+    $this->_profileId = CRM_Utils_Request::retrieve('profile_id', 'Positive', $this, FALSE);
+    $this->assign('profileId', $this->_profileId);
+
     $this->_multiRecordDisplay = CRM_Utils_Request::retrieve('multiRecordDisplay', 'String', $this, FALSE);
     $this->_cgcount = CRM_Utils_Request::retrieve('cgcount', 'Positive', $this, FALSE);
     $this->_recId = CRM_Utils_Request::retrieve('recId', 'Positive', $this, FALSE);
@@ -128,6 +131,10 @@ class CRM_Contact_Page_View_CustomData extends CRM_Core_Page {
         $page->set('action', CRM_Core_Action::BROWSE);
         $page->set('multiRecordFieldListing', $multiRecordFieldListing);
         $page->set('pageViewType', 'customDataView');
+        if ($this->_profileId) {
+          $page->set('profileId', $this->_profileId);
+          $page->set('actionUrlType', 'profileDataView');
+        }
         $page->set('contactType', $ctype);
         $page->_headersOnly = TRUE;
         $page->run();

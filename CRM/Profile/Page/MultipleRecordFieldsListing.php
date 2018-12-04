@@ -42,13 +42,15 @@ class CRM_Profile_Page_MultipleRecordFieldsListing extends CRM_Core_Page_Basic {
 
   protected $_fields = NULL;
 
-  protected $_profileId = NULL;
+  public $_profileId = NULL;
 
   public $_contactId = NULL;
 
   public $_customGroupTitle = NULL;
 
   public $_pageViewType = NULL;
+
+  public $_actionUrlType = NULL;
 
   public $_contactType = NULL;
 
@@ -94,7 +96,7 @@ class CRM_Profile_Page_MultipleRecordFieldsListing extends CRM_Core_Page_Basic {
       );
 
       // urls and queryStrings
-      if ($this->_pageViewType == 'profileDataView') {
+      if ($this->_actionUrlType == 'profileDataView') {
         $links[CRM_Core_Action::VIEW]['url'] = 'civicrm/profile/view';
         $links[CRM_Core_Action::VIEW]['qs'] = "reset=1&id=%%id%%&recordId=%%recordId%%&gid=%%gid%%&multiRecord={$view}";
 
@@ -105,10 +107,10 @@ class CRM_Profile_Page_MultipleRecordFieldsListing extends CRM_Core_Page_Basic {
         $links[CRM_Core_Action::DELETE]['qs'] = "reset=1&id=%%id%%&recordId=%%recordId%%&gid=%%gid%%&multiRecord={$delete}";
 
       }
-      elseif ($this->_pageViewType == 'customDataView') {
+      elseif ($this->_actionUrlType == 'customDataView') {
         // custom data specific view links
         $links[CRM_Core_Action::VIEW]['url'] = 'civicrm/contact/view/cd';
-        $links[CRM_Core_Action::VIEW]['qs'] = 'reset=1&gid=%%gid%%&cid=%%cid%%&recId=%%recId%%&cgcount=%%cgcount%%&multiRecordDisplay=single&mode=view';
+        $links[CRM_Core_Action::VIEW]['qs'] = 'reset=1&gid=%%cgid%%&cid=%%cid%%&recId=%%recId%%&cgcount=%%cgcount%%&multiRecordDisplay=single&mode=view';
 
         // custom data specific update links
         $links[CRM_Core_Action::UPDATE]['url'] = 'civicrm/contact/view/cd/edit';
@@ -150,6 +152,7 @@ class CRM_Profile_Page_MultipleRecordFieldsListing extends CRM_Core_Page_Basic {
 
     $this->_contactId = CRM_Utils_Request::retrieve('contactId', 'Positive', $this, FALSE);
     $this->_pageViewType = CRM_Utils_Request::retrieve('pageViewType', 'Positive', $this, FALSE, 'profileDataView');
+    $this->_actionUrlType = CRM_Utils_Request::retrieve('actionUrlType', 'String', $this, FALSE, $this->_pageViewType);
     $this->_customGroupId = CRM_Utils_Request::retrieve('customGroupId', 'Positive', $this, FALSE, 0);
     $this->_contactType = CRM_Utils_Request::retrieve('contactType', 'String', $this, FALSE);
     if ($action & CRM_Core_Action::BROWSE) {
@@ -185,6 +188,8 @@ class CRM_Profile_Page_MultipleRecordFieldsListing extends CRM_Core_Page_Basic {
 
       $multiFieldId = CRM_Core_BAO_CustomField::getKeyID(key($multiRecordFields));
       $customGroupId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomField', $multiFieldId, 'custom_group_id');
+      $this->assign('customGroupId', $customGroupId);
+      $this->assign('profileId', $this->_profileId);
       $reached = CRM_Core_BAO_CustomGroup::hasReachedMaxLimit($customGroupId, $this->_contactId);
       if (!$reached) {
         $this->assign('contactId', $this->_contactId);
@@ -384,9 +389,10 @@ class CRM_Profile_Page_MultipleRecordFieldsListing extends CRM_Core_Page_Basic {
               }
               else {
                 // different set of url params
-                $actionParams['gid'] = $actionParams['groupID'] = $this->_customGroupId;
-                $actionParams['cid'] = $actionParams['entityID'] = $this->_contactId;
-                $actionParams['recId'] = $recId;
+                $actionParams['gid']  = $this->_profileId;
+                $actionParams['cgid'] = $actionParams['groupID'] = $this->_customGroupId;
+                $actionParams['id']   = $actionParams['cid'] = $actionParams['entityID'] = $this->_contactId;
+                $actionParams['recordId'] = $recId;
                 $actionParams['type'] = $this->_contactType;
                 $actionParams['cgcount'] = empty($DTparams['sort']) ? $cgcount : $sortedResult[$recId];
                 $actionParams['newCgCount'] = $newCgCount;
@@ -398,6 +404,7 @@ class CRM_Profile_Page_MultipleRecordFieldsListing extends CRM_Core_Page_Basic {
                   'contactId' => $this->_contactId,
                   'key' => CRM_Core_Key::get('civicrm/ajax/customvalue'),
                 );
+                unset($links[CRM_Core_Action::DELETE]['qs']);
                 $links[CRM_Core_Action::DELETE]['url'] = '#';
                 $links[CRM_Core_Action::DELETE]['extra'] = ' data-delete_params="' . htmlspecialchars(json_encode($deleteData)) . '"';
                 $links[CRM_Core_Action::DELETE]['class'] = 'delete-custom-row';

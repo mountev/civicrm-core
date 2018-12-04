@@ -29,9 +29,9 @@
      {assign var='dialogId' value='custom-record-dialog'}
   {else}
      {assign var='dialogId' value='profile-dialog'}
+     <div id="multirecordfieldlist-through-contact"></div>
   {/if}
   {if ($records and $headers) or ($pageViewType eq 'customDataView')}
-    {include file="CRM/common/jsortable.tpl"}
     <div id="custom-{$customGroupId}-table-wrapper" {if $pageViewType eq 'customDataView'}class="crm-entity" data-entity="contact" data-id="{$contactId}"{/if}>
       <div>
         {strip}
@@ -53,7 +53,7 @@
                   var $table = $('#records-' + {/literal}'{$customGroupId}'{literal});
                   $('table.crm-multifield-selector').data({
                     "ajax": {
-                      "url": {/literal}'{crmURL p="civicrm/ajax/multirecordfieldlist" h=0 q="snippet=4&cid=$contactId&cgid=$customGroupId"}'{literal},
+                      "url": {/literal}'{crmURL p="civicrm/ajax/multirecordfieldlist" h=0 q="snippet=4&cid=$contactId&cgid=$customGroupId&profile_id=$profileId"}'{literal},
                     },
                     "language": {
                       "emptyTable": ZeroRecordText,
@@ -79,6 +79,28 @@
               {/literal}
 
             {else}
+              {literal}
+              <script type="text/javascript">
+                CRM.$(function($) {
+                  CRM.loadPage(
+                    CRM.url(
+                      'civicrm/contact/view/cd',
+                      {
+                        reset: 1,
+                        cid: {/literal}{$contactId}{literal},
+                        gid: {/literal}{$customGroupId}{literal},
+                        profile_id: {/literal}{$profileId}{literal},
+                      },
+                      'back'
+                    ),
+                    {
+                      target : '#multirecordfieldlist-through-contact',
+                      dialog : false
+                    }
+                  );
+                });
+              </script>
+              {/literal}
               {foreach from=$headers key=recId item=head}
                 <th>{ts}{$head}{/ts}</th>
               {/foreach}
