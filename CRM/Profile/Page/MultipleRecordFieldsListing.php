@@ -71,7 +71,7 @@ class CRM_Profile_Page_MultipleRecordFieldsListing extends CRM_Core_Page_Basic {
    *   (reference) of action links
    */
   public function &links() {
-    if (!(self::$_links[$this->_pageViewType])) {
+    if (!(self::$_links[$this->_actionUrlType])) {
       // helper variable for nicer formatting
       $links = array();
 
@@ -110,7 +110,7 @@ class CRM_Profile_Page_MultipleRecordFieldsListing extends CRM_Core_Page_Basic {
       elseif ($this->_actionUrlType == 'customDataView') {
         // custom data specific view links
         $links[CRM_Core_Action::VIEW]['url'] = 'civicrm/contact/view/cd';
-        $links[CRM_Core_Action::VIEW]['qs'] = 'reset=1&gid=%%cgid%%&cid=%%cid%%&recId=%%recId%%&cgcount=%%cgcount%%&multiRecordDisplay=single&mode=view';
+        $links[CRM_Core_Action::VIEW]['qs'] = 'reset=1&gid=%%cgid%%&cid=%%cid%%&recId=%%recordId%%&cgcount=%%cgcount%%&multiRecordDisplay=single&mode=view';
 
         // custom data specific update links
         $links[CRM_Core_Action::UPDATE]['url'] = 'civicrm/contact/view/cd/edit';
@@ -126,9 +126,9 @@ class CRM_Profile_Page_MultipleRecordFieldsListing extends CRM_Core_Page_Basic {
         );
       }
 
-      self::$_links[$this->_pageViewType] = $links;
+      self::$_links[$this->_actionUrlType] = $links;
     }
-    return self::$_links[$this->_pageViewType];
+    return self::$_links[$this->_actionUrlType];
   }
 
   /**
@@ -173,6 +173,11 @@ class CRM_Profile_Page_MultipleRecordFieldsListing extends CRM_Core_Page_Basic {
     $newCgCount = $cgcount = 0;
     $attributes = $result = $headerAttr = array();
     $dateFieldsVals = NULL;
+    if (empty($this->_actionUrlType)) {
+      // default for cases when browse() is called directly
+      // e.g ajax call - CRM_Custom_Page_AJAX::getMultiRecordFieldList()
+      $this->_actionUrlType = $this->_pageViewType;
+    }
     if ($this->_pageViewType == 'profileDataView' && $this->_profileId) {
       $fields = CRM_Core_BAO_UFGroup::getFields($this->_profileId, FALSE, NULL,
         NULL, NULL,
