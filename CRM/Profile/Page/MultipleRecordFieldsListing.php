@@ -179,20 +179,8 @@ class CRM_Profile_Page_MultipleRecordFieldsListing extends CRM_Core_Page_Basic {
       $this->_actionUrlType = $this->_pageViewType;
     }
     if ($this->_pageViewType == 'profileDataView' && $this->_profileId) {
-      $fields = CRM_Core_BAO_UFGroup::getFields($this->_profileId, FALSE, NULL,
-        NULL, NULL,
-        FALSE, NULL,
-        FALSE,
-        NULL,
-        CRM_Core_Permission::EDIT
-      );
       $multiRecordFields = array();
-      $fieldIDs = NULL;
-      $result = NULL;
-      $multiRecordFieldsWithSummaryListing = CRM_Core_BAO_UFGroup::shiftMultiRecordFields($fields, $multiRecordFields, TRUE);
-
-      $multiFieldId = CRM_Core_BAO_CustomField::getKeyID(key($multiRecordFields));
-      $customGroupId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomField', $multiFieldId, 'custom_group_id');
+      list($multiRecordFieldsWithSummaryListing, $customGroupId) = $this->getMultiRecordFieldsWithSummaryListing($multiRecordFields);
       $this->assign('customGroupId', $customGroupId);
       $this->assign('profileId', $this->_profileId);
       $reached = CRM_Core_BAO_CustomGroup::hasReachedMaxLimit($customGroupId, $this->_contactId);
@@ -202,9 +190,7 @@ class CRM_Profile_Page_MultipleRecordFieldsListing extends CRM_Core_Page_Basic {
       }
       $this->assign('reachedMax', $reached);
 
-      if ($multiRecordFieldsWithSummaryListing && !empty($multiRecordFieldsWithSummaryListing)) {
-        $fieldIDs = array_keys($multiRecordFieldsWithSummaryListing);
-      }
+      $fieldIDs = $this->getMultiRecordListingFieldIds($multiRecordFieldsWithSummaryListing);
     }
     elseif ($this->_pageViewType == 'customDataView') {
       // require custom group id for _pageViewType of customDataView
@@ -220,6 +206,11 @@ class CRM_Profile_Page_MultipleRecordFieldsListing extends CRM_Core_Page_Basic {
       $groupDetail = CRM_Core_BAO_CustomGroup::getGroupDetail($customGroupId, NULL, CRM_Core_DAO::$_nullObject, TRUE);
       // field ids of fields in_selector for the custom group id provided
       $fieldIDs = array_keys($groupDetail[$customGroupId]['fields']);
+
+      if ($this->_profileId) {
+        // it's a profile view with datatables. Filter fieldIDs based on multi-record-listing setting
+        $fieldIDs = $this->getMultiRecordListingFieldIds($multiRecordFieldsWithSummaryListing);
+      }
       // field labels for headers
       $fieldLabels = $groupDetail[$customGroupId]['fields'];
 
@@ -474,6 +465,48 @@ class CRM_Profile_Page_MultipleRecordFieldsListing extends CRM_Core_Page_Basic {
     $this->assign('attributes', $attributes);
 
     return array($result, $attributes);
+  }
+
+  /**
+   * Get information related to multi record fields
+   *
+   * @return array
+   *   multi record field information along with custom group id
+   */
+  public function getMultiRecordFieldsWithSummaryListing(&$multiRecordFields) {
+    $multiRecordFieldsWithSummaryListing = array();
+    $customGroupId = NULL;
+    if ($this->_profileId) {
+      $fields = CRM_Core_BAO_UFGroup::getFields($this->_profileId, FALSE, NULL,
+        NULL, NULL,
+        FALSE, NULL,
+        FALSE,
+        NULL,
+        CRM_Core_Permission::EDIT
+      );
+      $multiRecordFieldsWithSummaryListing = CRM_Core_BAO_UFGroup::shiftMultiRecordFields($fields, $multiRecordFields, TRUE);
+      $multiFieldId  = CRM_Core_BAO_CustomField::getKeyID(key($multiRecordFields));
+      $customGroupId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomField', $multiFieldId, 'custom_group_id');
+    }
+    return array($multiRecordFieldsWithSummaryListing, $customGroupId);
+  }
+
+  /**
+   * Get field ids for fields with multi record listing enabled.
+   *
+   * @return array
+   *   multi record field ids
+   */
+  public function getMultiRecordListingFieldIds($multiRecordFieldsWithSummaryListing = array()) {
+    $fieldIDs = array();
+    $multiRecordFields = array();
+    if (empty($multiRecordFieldsWithSummaryListing)) {
+      list($multiRecordFieldsWithSummaryListing) = $this->getMultiRecordFieldsWithSummaryListing($multiRecordFields);
+    }
+    if (!empty($multiRecordFieldsWithSummaryListing)) {
+      $fieldIDs = array_keys($multiRecordFieldsWithSummaryListing);
+    }
+    return $fieldIDs;
   }
 
   /**
