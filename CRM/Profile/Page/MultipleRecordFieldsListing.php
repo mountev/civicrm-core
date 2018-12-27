@@ -452,8 +452,6 @@ class CRM_Profile_Page_MultipleRecordFieldsListing extends CRM_Core_Page_Basic {
         }
       }
     }
-    $this->assign('dateFields', $dateFields);
-    $this->assign('dateFieldsVals', $dateFieldsVals);
     $this->assign('cgcount', $cgcount);
     $this->assign('newCgCount', $newCgCount);
     $this->assign('contactId', $this->_contactId);
@@ -461,7 +459,6 @@ class CRM_Profile_Page_MultipleRecordFieldsListing extends CRM_Core_Page_Basic {
     $this->assign('customGroupTitle', $this->_customGroupTitle);
     $this->assign('headers', $headers);
     $this->assign('headerAttr', $headerAttr);
-    $this->assign('records', $result);
     $this->assign('attributes', $attributes);
 
     return array($result, $attributes);

@@ -29,15 +29,16 @@
      {assign var='dialogId' value='custom-record-dialog'}
   {else}
      {assign var='dialogId' value='profile-dialog'}
-     <div id="multirecordfieldlist-through-contact"></div>
+     <div id="multirecordfieldlist-through-profile"></div>
   {/if}
-  {if ($records and $headers) or ($pageViewType eq 'customDataView')}
+  {if $headers or ($pageViewType eq 'customDataView')}
+    {include file="CRM/common/jsortable.tpl"}
     <div id="custom-{$customGroupId}-table-wrapper" {if $pageViewType eq 'customDataView'}class="crm-entity" data-entity="contact" data-id="{$contactId}"{/if}>
       <div>
-        {strip}
+        {if $pageViewType eq 'customDataView'}
+          {strip}
           <table id="records-{$customGroupId}" class={if $pageViewType eq 'customDataView'}"crm-multifield-selector crm-ajax-table"{else}'display'{/if}>
             <thead>
-            {if $pageViewType eq 'customDataView'}
               {foreach from=$headers key=recId item=head}
                 <th data-data={ts}'{$headerAttr.$recId.columnName}'{/ts}
                 {if !empty($headerAttr.$recId.dataType)}cell-data-type="{$headerAttr.$recId.dataType}"{/if}
@@ -77,57 +78,36 @@
                 })(CRM.$);
               </script>
               {/literal}
-
-            {else}
-              {literal}
-              <script type="text/javascript">
-                CRM.$(function($) {
-                  CRM.loadPage(
-                    CRM.url(
-                      'civicrm/contact/view/cd',
-                      {
-                        reset: 1,
-                        cid: {/literal}{$contactId}{literal},
-                        gid: {/literal}{$customGroupId}{literal},
-                        profile_id: {/literal}{$profileId}{literal},
-                      },
-                      'back'
-                    ),
-                    {
-                      target : '#multirecordfieldlist-through-contact',
-                      dialog : false
-                    }
-                  );
-                });
-              </script>
-              {/literal}
-              {foreach from=$headers key=recId item=head}
-                <th>{ts}{$head}{/ts}</th>
-              {/foreach}
-
-              {foreach from=$dateFields key=fieldId item=v}
-                <th class='hiddenElement'></th>
-              {/foreach}
-              <th>&nbsp;</th>
-              </thead>
-              {foreach from=$records key=recId item=rows}
-                <tr class="{cycle values="odd-row,even-row"}">
-                  {foreach from=$headers key=hrecId item=head}
-                    <td {crmAttributes a=$attributes.$hrecId.$recId}>{$rows.$hrecId}</td>
-                  {/foreach}
-                  <td>{$rows.action}</td>
-                  {foreach from=$dateFieldsVals key=fid item=rec}
-                      <td class='crm-field-{$fid}_date hiddenElement'>{$rec.$recId}</td>
-                  {/foreach}
-                </tr>
-              {/foreach}
-            {/if}
           </table>
-        {/strip}
+          {/strip}
+        {else}
+          {literal}
+          <script type="text/javascript">
+            CRM.$(function($) {
+              CRM.loadPage(
+                CRM.url(
+                  'civicrm/contact/view/cd',
+                  {
+                    reset: 1,
+                    cid: {/literal}{$contactId}{literal},
+                    gid: {/literal}{$customGroupId}{literal},
+                    profile_id: {/literal}{$profileId}{literal},
+                  },
+                  'back'
+                ),
+                {
+                  target : '#multirecordfieldlist-through-profile',
+                  dialog : false
+                }
+              );
+            });
+          </script>
+          {/literal}
+        {/if}
       </div>
     </div>
     <div id='{$dialogId}' class="hiddenElement"></div>
-  {elseif !$records}
+  {elseif !$headers}
     <div class="messages status no-popup">
       <div class="icon inform-icon"></div>
       &nbsp;
@@ -137,8 +117,8 @@
   {/if}
 
   {if !$reachedMax}
-    <div class="action-link">
-      {if $pageViewType eq 'customDataView'}
+    {if $pageViewType eq 'customDataView'}
+      <div class="action-link">
         {if $profileId}
           <a accesskey="N" href="{crmURL p='civicrm/profile/edit' q="reset=1&id=`$contactId`&multiRecord=add&gid=`$profileId`&context=multiProfileDialog&onPopupClose=`$onPopupClose`"}"
            class="button action-item"><span><i class="crm-i fa-plus-circle"></i> {ts 1=$customGroupTitle}Add New %1 Record{/ts}</span></a>
@@ -146,11 +126,8 @@
           <br/><a accesskey="N" title="{ts 1=$customGroupTitle}Add %1 Record{/ts}" href="{crmURL p='civicrm/contact/view/cd/edit' q="reset=1&type=$ctype&groupID=$customGroupId&entityID=$contactId&cgcount=$newCgCount&multiRecordDisplay=single&mode=add"}"
            class="button action-item"><span><i class="crm-i fa-plus-circle"></i> {ts 1=$customGroupTitle}Add %1 Record{/ts}</span></a>
         {/if}
-      {else}
-        <a accesskey="N" href="{crmURL p='civicrm/profile/edit' q="reset=1&id=`$contactId`&multiRecord=add&gid=`$gid`&context=multiProfileDialog&onPopupClose=`$onPopupClose`"}"
-         class="button action-item"><span><i class="crm-i fa-plus-circle"></i> {ts}Add New Record{/ts}</span></a>
-      {/if}
-    </div>
+      </div>
+    {/if}
     <br />
   {/if}
 {/if}
